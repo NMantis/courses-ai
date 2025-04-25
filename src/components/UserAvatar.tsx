@@ -16,6 +16,7 @@ const UserAvatar = ({ user }: Props) => {
             fill
             src={user.image}
             alt="user profile"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             referrerPolicy="no-referrer"
           />
         </div>

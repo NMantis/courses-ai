@@ -12,8 +12,8 @@ import { Plus, Trash } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
-// import { useToast } from "./ui/use-toast";
 import { useRouter } from "next/navigation";
+import { useToast } from "./ui/use-toast";
 // import SubscriptionAction from "./SubscriptionAction";
 
 type Props = { isPro: boolean };
@@ -22,16 +22,8 @@ type Input = z.infer<typeof createChaptersSchema>;
 
 const CreateCourseForm = ({ isPro }: Props) => {
   const router = useRouter();
-  // const { toast } = useToast();
-  const { mutate: createChapters } = useMutation({
-    mutationFn: async ({ title, units }: Input) => {
-      const response = await axios.post("/api/course/createChapters", {
-        title,
-        units,
-      });
-      return response.data;
-    },
-  });
+  const { toast } = useToast();
+
   const form = useForm<Input>({
     resolver: zodResolver(createChaptersSchema),
     defaultValues: {
@@ -40,30 +32,39 @@ const CreateCourseForm = ({ isPro }: Props) => {
     },
   });
 
+  const { mutate: createChapters, isPending  } = useMutation({
+    mutationFn: async ({ title, units }: Input) => {
+      const response = await axios.post("/api/course/createChapters", {
+        title,
+        units,
+      });
+      return response.data;
+    },
+  });
+
   function onSubmit(data: Input) {
     if (data.units.some((unit) => unit === "")) {
-      // toast({
-      //   title: "Error",
-      //   description: "Please fill all the units",
-      //   variant: "destructive",
-      // });
+      toast({
+        title: "Error",
+        description: "Please fill all the units",
+        variant: "destructive",
+      });
       return;
     }
     createChapters(data, {
       onSuccess: ({ course_id }) => {
-        // toast({
-        //   title: "Success",
-        //   description: "Course created successfully",
-        // });
+        toast({
+          title: "Success",
+          description: "Course created successfully",
+        });
         router.push(`/create/${course_id}`);
       },
       onError: (error) => {
-        console.error(error);
-        // toast({
-        //   title: "Error",
-        //   description: "Something went wrong",
-        //   variant: "destructive",
-        // });
+        toast({
+          title: "Error",
+          description: "Something went wrong",
+          variant: "destructive",
+        });
       },
     });
   }
@@ -163,6 +164,7 @@ const CreateCourseForm = ({ isPro }: Props) => {
             type="submit"
             className="w-full mt-6"
             size="lg"
+            disabled={isPending}
           >
             Lets Go!
           </Button>
