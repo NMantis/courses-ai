@@ -32,7 +32,7 @@ const QuizCards = ({ chapter }: Props) => {
     });
   }, [answers, questionState, chapter.questions]);
   return (
-    <div className="flex-[1] mt-16 ml-8">
+    <div className="flex-[1] mt-12 ml-8">
       <h1 className="text-2xl font-bold">Concept Check</h1>
       <div className="mt-2">
         {chapter.questions.map((question) => {

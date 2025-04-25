@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { createChaptersSchema } from "@/validators/course";
 import { ZodError } from "zod";
-import { getCompletion } from "@/lib/gpt";
+import { strict_output } from "@/lib/gpt";
 import { getUnsplashImage } from "@/lib/unsplash";
 import { getAuthSession } from "@/lib/auth";
 // import { checkSubscription } from "@/lib/subscription";
@@ -30,27 +30,28 @@ export async function POST(req: Request, res: Response) {
             }[];
         }[];
 
-        const output_units = await getCompletion(
+        let output_units: outputUnits = await strict_output(
             "You are an AI capable of curating course content, coming up with relevant chapter titles, and finding relevant youtube videos for each chapter",
             new Array(units.length).fill(
-                `It is your job to create a course about ${title}. The user has requested to create 1-4 chapters for each of the units (${JSON.stringify(units)}).
-                    Then, for each chapter, provide a detailed youtube search query that can be used to find an informative educationalvideo for each chapter. Each query should give an educational informative course in youtube.`
+                `It is your job to create a course about ${title}. The user has requested to create chapters for each of the units. Then, for each chapter, provide a detailed youtube search query that can be used to find an informative educationalvideo for each chapter. Each query should give an educational informative course in youtube.`
             ),
             {
                 title: "title of the unit",
-                chapters: "an array of chapters, each chapter should have a youtube_search_query and a chapter_title key in the JSON object",
+                chapters:
+                    "an array of chapters, each chapter should have a youtube_search_query and a chapter_title key in the JSON object",
             }
         );
 
-        console.log(output_units);
-        const image = await getCompletion(
-            "You are an AI capable of finding the most relevant image for a course.",
+        const imageSearchTerm = await strict_output(
+            "you are an AI capable of finding the most relevant image for a course",
             `Please provide a good image search term for the title of a course about ${title}. This search term will be fed into the unsplash API, so make sure it is a good search term that will return good results`,
-            { image_search_term: "a good search term for the title of the course" }
+            {
+                image_search_term: "a good search term for the title of the course",
+            }
         );
 
         const course_image = await getUnsplashImage(
-            JSON.parse(image).image_search_term
+            imageSearchTerm.image_search_term
         );
 
         const course = await prisma.course.create({
@@ -60,11 +61,7 @@ export async function POST(req: Request, res: Response) {
             },
         });
 
-        const transform = JSON.parse(output_units);
-        const units_array: outputUnits = Array.isArray(transform) ? transform : [transform];
-
-        console.log(units_array)
-        for (const unit of units_array) {
+        for (const unit of output_units) {
             const prismaUnit = await prisma.unit.create({
                 data: {
                     name: unit.title,
@@ -94,12 +91,12 @@ export async function POST(req: Request, res: Response) {
         //     },
         // });
 
-        return NextResponse.json({ course_id: course.id, units: units_array });
+        return NextResponse.json({ course_id: course.id });
     } catch (error) {
         if (error instanceof ZodError) {
             return new NextResponse("invalid body", { status: 400 });
         }
 
-        return NextResponse.json({ error });
+        return new NextResponse("something went wrong", { status: 400 });
     }
 }

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { YoutubeTranscript } from "youtube-transcript";
-import { getCompletion } from "./gpt";
+import { strict_output } from "./gpt";
 
 export async function searchYoutube(searchQuery: string) {
     // hello world => hello+world
@@ -45,9 +45,9 @@ export async function getQuestionsFromTranscript(
         option2: string;
         option3: string;
     };
-    const questions = await getCompletion(
+    const questions: Question[] = await strict_output(
         "You are a helpful AI that is able to generate mcq questions and answers, the length of each answer should not be more than 15 words",
-        new Array(2).fill(
+        new Array(5).fill(
             `You are to generate a random hard mcq question about ${course_title} with context of the following transcript: ${transcript}`
         ),
         {
@@ -58,6 +58,5 @@ export async function getQuestionsFromTranscript(
             option3: "option3 with max length of 15 words",
         }
     );
-
-    return JSON.parse(questions) as Question[];
+    return questions;
 }
