@@ -1,3 +1,4 @@
+import ConfirmChapters from "@/components/ConfirmChapters";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/db";
 import { Info } from "lucide-react";
@@ -10,7 +11,8 @@ type Props = {
   };
 };
 
-const CreateChapters = async ({ params: { courseId } }: Props) => {
+const CreateChapters = async ({ params }: Props) => {
+  const {courseId} = await params;
   const session = await getAuthSession();
   if (!session?.user) {
     return redirect("/gallery");
@@ -44,7 +46,7 @@ const CreateChapters = async ({ params: { courseId } }: Props) => {
           click the Button to confirm and continue
         </div>
       </div>
-      {/* <ConfirmChapters course={course} /> */}
+      <ConfirmChapters course={course} />
     </div>
   );
 };
