@@ -1,9 +1,24 @@
+import SubscriptionButton from '@/components/SubscriptionButton';
+import { checkSubscription } from '@/lib/subscription';
 import React from 'react'
 
-const SettingsPage = () => {
+const SettingsPage = async () => {
+  const isPro = await checkSubscription();
   return (
-    <div>
-      
+    <div className="py-8 mx-auto max-w-7xl">
+      <h1 className='text-3xl font-bold'>Settings</h1>
+      {isPro ? 
+      (
+        <div className='text-xl text-secondary-foreground/60'>
+          You are a pro user
+        </div>
+      ) : (
+        <div className='text-xl text-secondary-foreground/60'>
+          You are not a pro user
+        </div>
+      )}
+
+      <SubscriptionButton isPro={isPro} />
     </div>
   )
 }
